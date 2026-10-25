@@ -1,0 +1,17 @@
+[package]
+name = "imagine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "CRUSSTY module entry: boots the mini-NeoForge runtime inside Paper 26.3"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+cplug-abi.workspace = true
+cplug-sdk.workspace = true
+imagine-loader = { path = "../imagine-loader" }
+imagine-registry = { path = "../imagine-registry" }
+imagine-protocol = { path = "../imagine-protocol" }
