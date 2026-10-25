@@ -1,0 +1,94 @@
+name: e2e
+
+# Boots a REAL Paper 26.3 server with CRUSSTY + imagine + generated test
+# mods, then asserts the log markers. This is the gate that says the module
+# actually works inside a kernel, not just in unit tests.
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *" # nightly
+
+env:
+  CARGO_TERM_COLOR: always
+  PAPER_VERSION_FAMILY: "26.3"
+
+jobs:
+  server-boot:
+    name: Paper 26.3 + imagine boot
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-e2e-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-e2e-
+
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build module (release)
+        run: cargo build --release -p imagine
+
+      - name: Generate test mod jars
+        run: bash scripts/gen_test_jars.sh testdata/out
+
+      - name: Install CRUSSTY CLI
+        run: npm i -g crussty || echo "::warning::crussty npm install failed — falling back to launcher-only boot"
+
+      - name: Scaffold server (Paper ${{ env.PAPER_VERSION_FAMILY }})
+        run: |
+          mkdir -p server
+          if command -v crussty >/dev/null 2>&1; then
+            crussty init --dir server --platform paper --version "$PAPER_VERSION_FAMILY" --non-interactive \
+              || echo "::warning::crussty init failed"
+          fi
+          bash scripts/fetch_paper.sh "$PAPER_VERSION_FAMILY" server || exit 1
+
+      - name: Install module + mods
+        run: |
+          mkdir -p server/modules/imagine server/mods
+          cp module.json server/modules/imagine/
+          cp target/release/libimagine.so server/modules/imagine/
+          cp testdata/out/*.jar server/mods/
+          ls -la server/modules/imagine server/mods
+
+      - name: Accept EULA + server.properties
+        run: |
+          echo "eula=true" > server/eula.txt
+          cat > server/server.properties <<PROPS
+          server-port=25599
+          online-mode=false
+          motd=c-imagine e2e
+          PROPS
+
+      - name: Boot server and watch markers
+        id: boot
+        timeout-minutes: 10
+        run: bash scripts/e2e_boot.sh server
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: |
+            server/logs/
+            e2e-result.txt
+          if-no-files-found: ignore

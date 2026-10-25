@@ -1,0 +1,83 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_NET_RETRY: 5
+
+jobs:
+  rust:
+    name: build + clippy + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build (workspace)
+        run: cargo build --workspace
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo test --workspace
+
+      - name: Release build (budget check)
+        run: |
+          cargo build --release -p imagine
+          strip --strip-all target/release/libimagine.so || true
+          ls -la target/release/libimagine.so
+          size=$(du -B1 target/release/libimagine.so | cut -f1)
+          echo "libimagine.so bytes: $size"
+          if [ "$size" -gt 5242880 ]; then
+            echo "::error::module .so exceeds 5 MB budget (ARCHITECTURE §8)"; exit 1
+          fi
+
+      - name: Upload module artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libimagine
+          path: target/release/libimagine.so
+          if-no-files-found: error
+
+  profile:
+    name: loader profile (budgets)
+    runs-on: ubuntu-latest
+    needs: rust
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Profile gate (50 synthetic mods, ARCHITECTURE §8)
+        run: cargo run --release -p profile-gate

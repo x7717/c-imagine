@@ -1,0 +1,28 @@
+name: visual
+
+# F2V visual harness (M4+): boots the server with the test modpack, drives a
+# headless vanilla 26.3 client under xvfb through a "gallery" world, captures
+# screenshots and compares them against references.
+# Manual for now — activated when M4 lands. Scaffold kept in-tree so the
+# pipeline is reviewed with everything else.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  gallery-capture:
+    name: vanilla client captures
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sandbox notice
+        run: |
+          echo "Visual harness is scaffolded but gated on M4 (F2V bridge)."
+          echo "Planned stages (docs/F2V-RS.md):"
+          echo "  1. boot Paper+imagine with test pack under xvfb"
+          echo "  2. headless vanilla client via stock jar + driver"
+          echo "  3. gallery world flythrough, screenshots per content item"
+          echo "  4. SSIM compare vs reference captures + modded-client reference"
+          echo "  5. artifacts: captures + diff images"
