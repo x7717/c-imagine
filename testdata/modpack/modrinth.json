@@ -1,0 +1,22 @@
+{
+  "$comment": "Curated NeoForge 1.21.1 test modpack for CI soak tests. CI downloads jars from Modrinth at runtime (no binaries in git). Each entry is exercised for a specific runtime surface; update 'purpose' when adding entries.",
+  "game_version": "1.21.1",
+  "loader": "neoforge",
+  "mods": [
+    {
+      "slug": "appleskin",
+      "project_id": "EsAfCjXL",
+      "purpose": "client/server sync events, food metadata (low-risk smoke)"
+    },
+    {
+      "slug": "jade",
+      "project_id": "nvQzSEkH",
+      "purpose": "WAILA-style block/entity lookups: registry queries + clientbound data piggyback"
+    },
+    {
+      "slug": "pickup-notifier",
+      "project_id": "ZTHfFYKd",
+      "purpose": "item pickup events, custom clientbound-style payloads through vanilla streams"
+    }
+  ]
+}
