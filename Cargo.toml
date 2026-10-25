@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/imagine",
+    "crates/imagine-loader",
+    "crates/imagine-registry",
+    "crates/imagine-protocol",
+    "crates/imagine-jcf",
+    "crates/profile-gate",
+]
+exclude = ["cplug-abi", "cplug-sdk"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/x7717/c-imagine"
+
+[workspace.dependencies]
+cplug-abi = { path = "cplug-abi" }
+cplug-sdk = { path = "cplug-sdk" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+thiserror = "2"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
