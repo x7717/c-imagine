@@ -1,0 +1,11 @@
+[package]
+name = "imagine-protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Packet codec primitives + 1.21.1 <-> 26.3 protocol translation scaffolding for the F2V visual bridge"
+
+[dependencies]
+thiserror.workspace = true
+imagine-registry = { path = "../imagine-registry" }

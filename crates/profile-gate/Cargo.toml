@@ -1,0 +1,12 @@
+[package]
+name = "profile-gate"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "CI profile gate: synthetic 50-mod pack, plan time + RSS budgets (ARCHITECTURE §8)"
+publish = false
+
+[dependencies]
+imagine-loader = { path = "../imagine-loader" }
+zip.workspace = true

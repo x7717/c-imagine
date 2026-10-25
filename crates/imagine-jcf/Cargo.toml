@@ -1,0 +1,10 @@
+[package]
+name = "imagine-jcf"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Minimal Java class-file inspector: constant pool walk + @Mod annotation extraction for mod discovery"
+
+[dependencies]
+thiserror.workspace = true
